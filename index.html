@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAY LAY | Digital Portfolio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.css">
+    <style>
+        :root {
+            --bg-color: #f3f3f3;
+            --text-color: #0d0d0d;
+            --border-color: #ddd;
+            --video-opacity: 0.9;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0d0d0d;
+            --text-color: #ffffff;
+            --border-color: #333;
+            --video-opacity: 0.6;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            transition: background-color 1s ease, color 1s ease;
+        }
+
+        /* --- 背景视频 --- */
+        .bg-container {
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: -1; background-color: var(--bg-color);
+        }
+        .bg-video {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: var(--video-opacity); transition: opacity 1s ease;
+        }
+        .bg-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 20%, var(--bg-color) 100%);
+        }
+
+        /* --- 导航栏 --- */
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 2.5rem 5%; 
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 100; box-sizing: border-box;
+        }
+        .logo { font-weight: 900; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { 
+            margin-left: 2.5rem; text-decoration: none; color: var(--text-color);
+            font-size: 0.8rem; letter-spacing: 1px; font-weight: 700; text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+        .nav-links a:hover { opacity: 0.5; }
+
+        /* --- 首页内容 --- */
+        [data-scroll-container] { position: relative; z-index: 1; }
+        section { padding: 10vh 5vw; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
+        
+        /* 赋予 Home 跳转的目标点 */
+        #home { min-height: 100vh; }
+        .hero h1 { font-size: 15vw; line-height: 0.8; margin: 0; text-transform: uppercase; font-weight: 900; letter-spacing: -0.5vw; }
+        
+        .work-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 100px; margin-top: 10vh; }
+        .work-item { position: relative; cursor: pointer; }
+        .work-item img { width: 100%; height: auto; filter: grayscale(100%); transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s; }
+        .work-item:hover img { transform: scale(1.03); filter: grayscale(0%); }
+        .work-title { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 1rem; text-transform: uppercase; font-weight: 700; }
+
+        /* --- 二级项目详情页 --- */
+        #project-detail {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg-color); z-index: 1000; display: none; 
+            overflow-y: auto; opacity: 0; transition: opacity 0.6s ease;
+        }
+        #project-detail.active { display: block; opacity: 1; }
+        .detail-header { position: sticky; top: 0; padding: 2rem 5%; display: flex; justify-content: space-between; background: var(--bg-color); z-index: 1001; }
+        .detail-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10vw; padding: 15vh 5vw; }
+        .detail-info h2 { font-size: 5rem; line-height: 0.9; margin: 0; text-transform: uppercase; font-weight: 900; }
+        .detail-gallery img { 
+            width: 100%; margin-bottom: 10vh; display: block; opacity: 0; 
+            transform: translateX(100px); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .detail-gallery img.reveal { opacity: 1; transform: translateX(0); }
+
+        /* --- Footer / Contact Section --- */
+        footer { border-top: 1px solid var(--border-color); }
+        .footer-content {
+            padding: 15vh 5vw 10vh;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 50px;
+            align-items: flex-end;
+        }
+        .footer-email a {
+            font-size: 5.5vw; font-weight: 900; text-decoration: none; color: var(--text-color);
+            letter-spacing: -3px; transition: opacity 0.3s;
+        }
+        .footer-email a:hover { opacity: 0.5; }
+        
+        .social-links { display: flex; flex-direction: column; gap: 15px; }
+        .social-links a {
+            text-decoration: none; color: var(--text-color); font-size: 1rem; font-weight: 700;
+            display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px; transition: all 0.3s ease;
+        }
+        .social-links a:hover { padding-left: 10px; opacity: 0.6; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 22vw; }
+            .work-grid, .detail-layout, .footer-content { grid-template-columns: 1fr; }
+            .footer-email a { font-size: 10vw; letter-spacing: -1px; }
+            .nav-links a { margin-left: 1.2rem; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-container">
+        <video autoplay muted loop playsinline class="bg-video" id="main-bg-video">
+            <source src="/Users/mac/Desktop/网页素材/video test/lv_7619876884955860286_20260506155655.mp4" type="video/mp4"> 
+        </video>
+        <div class="bg-overlay"></div>
+    </div>
+
+    <nav id="main-nav">
+        <div class="logo">LAY LAY</div>
+        <div class="nav-links">
+            <a href="#home" data-scroll-to>HOME</a>
+            <a href="#about" data-scroll-to>ABOUT</a>
+            <a href="#works" data-scroll-to>WORKS</a>
+            <a href="#contacts" data-scroll-to>CONTACTS</a>
+        </div>
+    </nav>
+
+    <div id="project-detail">
+        <div class="detail-header">
+            <div class="logo" id="close-btn" style="cursor: pointer;">← BACK</div>
+            <div style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 2px;">PROJECT DETAIL</div>
+        </div>
+        <div class="detail-layout">
+            <div class="detail-info">
+                <h2 id="d-title">TITLE</h2>
+                <p id="d-desc" style="margin-top: 2rem; line-height: 1.6; color: #888;">Project description...</p>
+                <div class="detail-meta" style="margin-top: 3rem; font-size: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                    <p>ROLE: ART DIRECTION / DESIGN</p>
+                    <p>YEAR: 2024</p>
+                </div>
+            </div>
+            <div class="detail-gallery" id="d-gallery"></div>
+        </div>
+    </div>
+
+    <div data-scroll-container>
+        
+        <section id="home" class="hero" data-scroll-section>
+            <h1 data-scroll data-scroll-speed="3">CREATIVE</h1>
+            <h1 data-scroll data-scroll-speed="-1" style="text-align: right;">STUDIO</h1>
+        </section>
+
+        <section id="about" data-scroll-section>
+            <div style="max-width: 650px;" data-scroll data-scroll-speed="1">
+                <p style="font-size: 2rem; line-height: 1.4; font-weight: 300;">
+                    我是 [累累]，一名数字艺术家。我通过抽象与几何的语言进行创作，构建超越现实的视觉体验。
+                </p>
+            </div>
+        </section>
+
+        <section id="works" class="work-grid" data-scroll-section>
+            <div class="work-item" data-scroll data-scroll-speed="2" data-proj="OCEANS">
+                <img src="/Users/mac/Desktop/网页素材/images/首图.jpg" alt="Work 1">
+                <div class="work-info">
+                    <div class="work-title">OCEANS</div>
+                    <p style="font-size: 0.8rem; opacity: 0.6;">Digital Art / 2024</p>
+                </div>
+            </div>
+            <div class="work-item" data-scroll data-scroll-speed="1" data-proj="TWICE">
+                <img src="/Users/mac/Desktop/网页素材/images/首图 2.jpg" alt="Work 2">
+                <div class="work-info">
+                    <div class="work-title">TWICE</div>
+                    <p style="font-size: 0.8rem; opacity: 0.6;">3D Motion / 2023</p>
+                </div>
+            </div>
+        </section>
+
+        <footer id="contacts" data-scroll-section>
+            <div class="footer-content">
+                <div class="footer-email">
+                    <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 1.5rem; letter-spacing: 1px;">GET IN TOUCH</p>
+                    <a href="mailto:111111@qq.com">111111@qq.com</a>
+                </div>
+                <div class="social-links">
+                    <a href="https://www.xiaohongshu.com" target="_blank">XIAOHONGSHU <span>↗</span></a>
+                    <a href="https://www.zcool.com.cn" target="_blank">ZCOOL <span>↗</span></a>
+                    <a href="#" target="_blank">INSTAGRAM <span>↗</span></a>
+                </div>
+            </div>
+            <div style="padding: 5vh 5vw; display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.3;">
+                <p>© 2026 LAY LAY.</p>
+                <p>BACK TO TOP ↑</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script>
+        // 自动日夜模式
+        function applyAutoTheme() {
+            const hour = new Date().getHours();
+            const isDark = hour >= 18 || hour < 6;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        }
+        applyAutoTheme();
+
+        // 初始化滚动
+        const scroll = new LocomotiveScroll({
+            el: document.querySelector('[data-scroll-container]'),
+            smooth: true, multiplier: 1, lerp: 0.05 
+        });
+
+        // 详情页数据
+        const projectData = {
+            "OCEANS": { title: "OCEANS", desc: "探索数字流体在极简空间中的动态美学。", images: ["images/1.jpg", "images/2.jpg"] },
+            "TWICE": { title: "TWICE", desc: "关于几何对称性与光影重构的视觉实验。", images: ["images/2.jpg", "images/1.jpg"] }
+        };
+
+        // 瀑布流图片监听
+        const galleryObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('reveal'); });
+        }, { threshold: 0.1 });
+
+        // 点击打开项目
+        document.querySelectorAll('.work-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const projId = item.getAttribute('data-proj');
+                const data = projectData[projId];
+                if(data) {
+                    document.getElementById('d-title').innerText = data.title;
+                    document.getElementById('d-desc').innerText = data.desc;
+                    const gallery = document.getElementById('d-gallery');
+                    gallery.innerHTML = ''; 
+                    data.images.forEach(src => {
+                        const img = document.createElement('img'); img.src = src;
+                        gallery.appendChild(img); galleryObserver.observe(img);
+                    });
+                    document.getElementById('project-detail').classList.add('active');
+                    scroll.stop(); 
+                    gsap.from(".detail-info > *", { y: 50, opacity: 0, stagger: 0.1, duration: 1, ease: "power4.out" });
+                }
+            });
+        });
+
+        // 关闭项目
+        document.getElementById('close-btn').addEventListener('click', () => {
+            document.getElementById('project-detail').classList.remove('active');
+            scroll.start(); 
+        });
+
+        // 滚动监听 (视频淡出)
+        scroll.on('scroll', (args) => {
+            const scrollY = args.scroll.y;
+            const vh = window.innerHeight;
+            let themeFactor = document.documentElement.getAttribute('data-theme') === 'dark' ? 0.6 : 0.1;
+            let currentOpacity = themeFactor - (scrollY / vh);
+            if (currentOpacity < 0) currentOpacity = 0;
+            document.getElementById('main-bg-video').style.opacity = currentOpacity;
+        });
+
+        // 导航平滑跳转
+        document.querySelectorAll('[data-scroll-to]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                scroll.scrollTo(link.getAttribute('href'), { duration: 1500 });
+            });
+        });
+
+        window.addEventListener('load', () => {
+            gsap.from(".hero h1", { duration: 1.8, y: 150, skewY: 7, stagger: 0.2, ease: "power4.out", opacity: 0 });
+            scroll.update();
+        });
+    </script>
+</body>
+</html>
